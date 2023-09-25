@@ -13,8 +13,7 @@ const VKAPI = {
 
         if (error) {
             notifiers('<span style="color: #FD324A; font-weight: bold;">Error from VK API: </span>' + JSON.stringify(error, null, "<br/>"));
-        };
-
+        }
 
         return response;
     },
@@ -34,14 +33,16 @@ const SCAPI = {
             ...parameters
         };
 
-        const { response: { response, error } } = await GM_xmlhttpRequest(${this.url}/${method}, parameters);
+        const response = await GM_xmlhttpRequest(`${this.url}/${method}`, parameters);
 
-        if (error) {
-            const errorMessage = '<span style="color: #FD324A; font-weight: bold;">Error from SC API: </span>' + JSON.stringify(error, null, "<br/>");
-            window.open().document.write(errorMessage);
+        if (response.error) {
+            notifiers('<span style="color: #FD324A; font-weight: bold;">Error from SC API: </span>' + JSON.stringify(response.error, null, "<br/>"));
+        } else {
+            // Сохраните данные в JSON файл (например, с именем "scapi_data.json").
+            await saveDataToJson(response.response, 'scapi_data.json');
         }
 
-        return response;
+        return response.response;
     }
 };
 
@@ -54,7 +55,7 @@ async function vkAuth() {
 
     if ((!url && !url2) || url.indexOf('cancel') !== -1) {
         return notifiers('<span style="color: #FD324A; font-weight: bold;">Ошибка авторизации ВКонтакте</span>');
-    };
+    }
 
     const { finalUrl } = await GM_xmlhttpRequest(url);
 
@@ -66,17 +67,25 @@ async function vkAuth() {
 
     const user = await VKAPI.isValid();
 
-
     if (!user) {
         notifiers('<span style="color: #FD324A; font-weight: bold;">Ошибка авторизации ВКонтакте</span>');
         GM_setValue('access_token', '');
         return false;
-    };
-
+    }
 
     GM_setValue('access_token', services.access_token = access_token);
     GM_setValue('VKMainUser', services.VKMainUser = user);
     notifiers(`<span style="color:  #A8E4A0; font-weight: bold;">Авторизованный, VK токен получен (Kate Mobile)\nДобро пожаловать в ПоискЧата, ${user.first_name}!</span>`);
 
     return true;
+}
+
+async function saveDataToJson(data, filename) {
+    const jsonBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const url = URL.createObjectURL(jsonBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
 }
