@@ -37,7 +37,7 @@ function blankChat({ chat, photo, creator }) {
                                 ${chat.membersCount.toLocaleString('ru-RU')} ${decOfNum(chat.membersCount, ['участник', 'участника', 'участников'])}
                             </div>
                             •
-                            ${chat.key} , ${chat.membersCount}
+                            ${chat.key} ${decOfNum(chat.membersCount}
                         </div>
                     </div>
                 </div>
